@@ -9,7 +9,8 @@
 
 #include <stdint.h>
 #include <math.h>
-#include "fpconv.hpp"
+
+int fpconv_dtoa(double fp, char dest[24]);
 
 namespace libjson {
 
@@ -19,30 +20,31 @@ namespace libjson {
     * @class ParseError
     * @brief Parse exception class to capture parse offset of error
     */
-    class ParseError
+    class ParseError : public std::exception
     {
     public:
-        ParseError( const char* a_msg, size_t a_pos ) : m_msg( a_msg ), m_pos( a_pos )
-        {}
-
-        std::string toString()
-        {
-            return std::string( m_msg ) + " at pos " + std::to_string( m_pos );
+        ParseError( const char* a_msg, size_t a_pos ) : m_msg( a_msg ), m_pos( a_pos ) {
         }
 
-        size_t getPos()
-        {
+        const char * what() const noexcept {
+            if ( !m_buf.size() ){
+                m_buf = std::string( m_msg ) + " at position " + std::to_string( m_pos );
+            }
+            return m_buf.c_str();
+        }
+
+        size_t getPos() {
             return m_pos;
         }
 
     private:
-        void setOffset( size_t a_offset )
-        {
+        void setOffset( size_t a_offset ) {
             m_pos -= a_offset;
         }
 
-        const char    * m_msg;
-        size_t          m_pos;
+        const char *        m_msg;
+        size_t              m_pos;
+        mutable std::string m_buf;
 
         friend class Value;
     };

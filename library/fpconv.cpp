@@ -1,8 +1,9 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "fpconv.hpp"
 #include "powers.hpp"
+
+//int fpconv_dtoa(double d, char dest[24]);
 
 #define fracmask  0x000FFFFFFFFFFFFFU
 #define expmask   0x7FF0000000000000U

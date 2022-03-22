@@ -2,15 +2,21 @@
 
 cc_library(
 	name = "libjson",
-	srcs = glob(["*.cpp","fpconv.hpp","powers.hpp"]),
+	srcs = glob(["*.cpp","powers.hpp"]),
 	hdrs= ["libjson.hpp"],
 	visibility = ["//visibility:public"]
 )
 
 cc_test(
 	name = "libjson_test",
+	size = "small",
+	tags = ["unit"],
 	srcs = ["test/libjson_test.cpp"],
 	deps = [":libjson"],
-	includes = ["."]
+	includes = ["."],
+	data = [
+        "//library:test/test_basic.json",
+        "//library:test/test_array_complex.json"
+    ],
 )
 
