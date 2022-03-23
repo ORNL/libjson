@@ -15,13 +15,13 @@ was copy-pasted into this library (this will be changed to a dependency in a fut
 
 Libjson is built with Bazel (https://bazel.build) and can be built from the root directory as follows:
 
-bazel build //library:libjson
+bazel build ...
 
 ### Unit Tests
 
 Unit testing is built and run via Bazel, as follows:
 
-bazel test //library:libjson_test
+bazel test ...
 
 *Note that testing has not yet been extended to cover the full JSON specification.*
 
