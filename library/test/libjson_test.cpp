@@ -124,7 +124,7 @@ void checkObject( const Value::Object & obj, int index ){
     checkArray( obj.getArray( "array1" ));
 }
 
-void testParsing(){
+bool testParsing(){
     cout << "testParsing: ";
 
     try{
@@ -138,13 +138,14 @@ void testParsing(){
         checkObject( obj.getObject( "object1" ), 1 );
 
         cout << "PASSED\n";
+        return false;
     }catch( exception &e ){
         cout << "FAILED\n    exception:" << e.what() << endl;
-        abort();
+        return true;
     }
 }
 
-void testSerialization(){
+bool testSerialization(){
     cout << "testSerialization: ";
 
     try{
@@ -161,9 +162,10 @@ void testSerialization(){
         }
 
         cout << "PASSED\n";
+        return false;
     }catch( exception &e ){
         cout << "FAILED\n    exception:" << e.what() << endl;
-        abort();
+        return true;
     }
 }
 
@@ -228,7 +230,7 @@ void checkArrayComplex( const Value::Array & arr ){
     checkArray( (i++)->asArray(), true );
 }
 
-void testComplexArrays(){
+bool testComplexArrays(){
     cout << "testComplexArrays: ";
 
     try{
@@ -239,16 +241,25 @@ void testComplexArrays(){
         checkArrayComplex( json.asArray() );
 
         cout << "PASSED\n";
+        return false;
     }catch( exception &e ){
         cout << "FAILED\n    exception:" << e.what() << endl;
-        abort();
+        return true;
     }
 }
 
 int main( int argc, char** argv ){
-    testParsing();          // Uses test_basic.json
-    testSerialization();    // Uses test_basic.json
-    testComplexArrays();    // Uses test_array_complex.json
+    bool fail = false;
+
+    fail |= testParsing();          // Uses test_basic.json
+    fail |= testSerialization();    // Uses test_basic.json
+    fail |= testComplexArrays();    // Uses test_array_complex.json
+
+    cout.flush();
+
+    if ( fail ){
+        abort();
+    }
 
     return 0;
 }

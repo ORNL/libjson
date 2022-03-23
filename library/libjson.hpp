@@ -7,10 +7,19 @@
 #include <string>
 #include <stdint.h>
 
-
+// This is the external entry point to the floating point conversion function
 int fpconv_dtoa(double fp, char dest[24]);
 
 namespace libjson {
+    namespace detail {
+        const char * STR_ERR_INVALID_CHAR           = "Invalid character";
+        const char * STR_ERR_UNTERMINATED_ARRAY     = "Unterminated array";
+        const char * STR_ERR_UNTERMINATED_OBJECT    = "Unterminated object";
+        const char * STR_ERR_UNTERMINATED_VALUE     = "Unterminated value";
+        const char * STR_ERR_INVALID_VALUE          = "Invalid value";
+        const char * STR_ERR_INVALID_KEY            = "Invalid key string";
+        const char * STR_ERR_INVALID_UNICODE        = "Invalid unicode escape sequence";
+    }
 
     class Value;
 
@@ -20,8 +29,7 @@ namespace libjson {
     */
     class ParseError : public std::exception {
     public:
-        ParseError( const char* a_msg, size_t a_pos ) : m_msg( a_msg ), m_pos( a_pos ) {
-        }
+        ParseError( const char* a_msg, const char * a_pos ) : m_msg( a_msg ), m_pos( (size_t)a_pos ) {}
 
         const char * what() const noexcept {
             if ( !m_buf.size() ) {
@@ -35,8 +43,8 @@ namespace libjson {
         }
 
     private:
-        void setOffset( size_t a_offset ) {
-            m_pos -= a_offset;
+        void setOffset( const char * a_offset ) {
+            m_pos -= (size_t)a_offset;
         }
 
         const char *        m_msg;
@@ -45,16 +53,6 @@ namespace libjson {
 
         friend class Value;
     };
-
-    #define  ERR_INVALID_CHAR( p ) throw ParseError( "Invalid character", (size_t)p )
-    #define  ERR_UNTERMINATED_ARRAY( p ) throw ParseError( "Unterminated array", (size_t)p )
-    #define  ERR_UNTERMINATED_OBJECT( p ) throw ParseError( "Unterminated object", (size_t)p )
-    #define  ERR_UNTERMINATED_VALUE( p ) throw ParseError( "Unterminated value", (size_t)p )
-    #define  ERR_EMPTY_KEY( p ) throw ParseError( "Empty key string", (size_t)p )
-    #define  ERR_INVALID_VALUE( p ) throw ParseError( "Invalid value", (size_t)p )
-    #define  ERR_INVALID_KEY( p ) throw ParseError( "Invalid key string", (size_t)p )
-    #define  ERR_INVALID_ESC( p ) throw ParseError( "Invalid escape sequence", (size_t)p )
-    #define  ERR_INVALID_UNICODE( p ) throw ParseError( "Invalid unicode escape sequence", (size_t)p )
 
     class Value {
     public:
@@ -763,26 +761,26 @@ namespace libjson {
                                 c = parseArray( *this, c + 1 );
                                 state = PS_SEEK_ARR_END;
                             } else if ( notWS( *c )) {
-                                ERR_INVALID_CHAR( c );
+                                throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                             }
                             break;
                         case PS_SEEK_OBJ_END:
                             if ( *c == '}' ) {
                                 state = PS_SEEK_END;
                             } else if ( notWS( *c )) {
-                                ERR_INVALID_CHAR( c );
+                                throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                             }
                             break;
                         case PS_SEEK_ARR_END:
                             if ( *c == ']' ) {
                                 state = PS_SEEK_END;
                             } else if ( notWS( *c )) {
-                                ERR_INVALID_CHAR( c );
+                                throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                             }
                             break;
                         case PS_SEEK_END:
                             if ( notWS( *c )) {
-                                ERR_INVALID_CHAR( c );
+                                throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                             }
                             break;
                     }
@@ -790,7 +788,7 @@ namespace libjson {
                     c++;
                 }
             } catch ( ParseError& e ) {
-                e.setOffset( (size_t)a_raw_json );
+                e.setOffset( a_raw_json );
                 throw;
             }
         }
@@ -823,7 +821,7 @@ namespace libjson {
             } else if ( c >= 'a' && c <= 'f' ) {
                 return (uint8_t)(10 + c - 'a');
             } else {
-                ERR_INVALID_CHAR( C );
+                throw ParseError( detail::STR_ERR_INVALID_CHAR, C );
             }
         }
 
@@ -960,19 +958,19 @@ namespace libjson {
                             c = parseString( key, c + 1 );
 
                             if ( !key.size() ) {
-                                ERR_INVALID_KEY( c );
+                                throw ParseError( detail::STR_ERR_INVALID_KEY, c );
                             }
 
                             state = PS_SEEK_SEP;
                         } else if ( notWS( *c ) ) {
-                            ERR_INVALID_CHAR( c );
+                            throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                         }
                         break;
                     case PS_SEEK_SEP:
                         if ( *c == ':' ) {
                             state = PS_SEEK_VAL;
                         } else if ( notWS( *c ) ) {
-                            ERR_INVALID_CHAR( c );
+                            throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                         }
                         break;
                     case PS_SEEK_VAL:
@@ -988,7 +986,7 @@ namespace libjson {
                         } else if ( *c == '}' ) {
                             return c;
                         } else if ( notWS( *c ) ) {
-                            ERR_INVALID_CHAR( c );
+                            throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                         }
                         break;
                 }
@@ -996,7 +994,7 @@ namespace libjson {
                 c++;
             }
 
-            ERR_UNTERMINATED_OBJECT( start );
+            throw ParseError( detail::STR_ERR_UNTERMINATED_OBJECT, start );
         }
 
         const char* parseArray( Value& a_parent, const char* start ) {
@@ -1026,7 +1024,7 @@ namespace libjson {
                         } else if ( *c == ']' ) {
                             return c;
                         } else if ( notWS( *c ) ) {
-                            ERR_INVALID_CHAR( c );
+                            throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                         }
                         break;
                 }
@@ -1034,7 +1032,7 @@ namespace libjson {
                 c++;
             }
 
-            ERR_UNTERMINATED_ARRAY( start );
+            throw ParseError( detail::STR_ERR_UNTERMINATED_ARRAY, start );
         }
 
         inline const char* parseValue( Value& a_value, const char* start ) {
@@ -1060,7 +1058,7 @@ namespace libjson {
                             c += 3;
                             return c;
                         } else {
-                            ERR_INVALID_VALUE( c );
+                            throw ParseError( detail::STR_ERR_INVALID_VALUE, c );
                         }
                         break;
                     case 'f':
@@ -1070,7 +1068,7 @@ namespace libjson {
                             c += 4;
                             return c;
                         } else {
-                            ERR_INVALID_VALUE( c );
+                            throw ParseError( detail::STR_ERR_INVALID_VALUE, c );
                         }
                         break;
                     case 'n':
@@ -1079,7 +1077,7 @@ namespace libjson {
                             c += 3;
                             return c;
                         } else {
-                            ERR_INVALID_VALUE( c );
+                            throw ParseError( detail::STR_ERR_INVALID_VALUE, c );
                         }
                         break;
                     default:
@@ -1088,7 +1086,7 @@ namespace libjson {
                             c = parseNumber( a_value.m_value.n, c );
                             return c;
                         } else if ( notWS( *c ) ) {
-                            ERR_INVALID_CHAR( c );
+                            throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                         }
                         break;
                 }
@@ -1096,7 +1094,7 @@ namespace libjson {
                 c++;
             }
 
-            ERR_UNTERMINATED_VALUE( start );
+            throw ParseError( detail::STR_ERR_UNTERMINATED_VALUE, start );
         }
 
         inline const char* parseString( std::string& a_value, const char* start ) {
@@ -1140,13 +1138,13 @@ namespace libjson {
                                 a_value.append( 1, (char)(0x80 | ((utf8 >> 6) & 0x3F)) );
                                 a_value.append( 1, (char)(0x80 | (utf8 & 0x3F)) );
                             } else {
-                                ERR_INVALID_UNICODE( c );
+                                throw ParseError( detail::STR_ERR_INVALID_UNICODE, c );
                             }
 
                             c += 4;
                             break;
                         default:
-                            ERR_INVALID_CHAR( c );
+                            throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                     }
 
                     c++;
@@ -1157,13 +1155,13 @@ namespace libjson {
                     }
                     return c;
                 } else if ( *c >= 0 && *c < 0x20 ) {
-                    ERR_INVALID_CHAR( c );
+                    throw ParseError( detail::STR_ERR_INVALID_CHAR, c );
                 }
 
                 c++;
             }
 
-            ERR_UNTERMINATED_VALUE( start );
+            throw ParseError( detail::STR_ERR_UNTERMINATED_VALUE, start );
         }
 
         inline const char* parseNumber( double& a_value, const char* start ) {
