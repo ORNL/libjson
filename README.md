@@ -1,4 +1,5 @@
 # libjson
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8466ca0bb9c142f6a5ef97f7755955f8)](https://www.codacy.com/gh/dvstans/libjson/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=dvstans/libjson&amp;utm_campaign=Badge_Grade)
 
 Fast, easy to use C++ JSON library
 
