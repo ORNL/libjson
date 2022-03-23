@@ -859,7 +859,7 @@ namespace libjson {
             switch ( m_type ) {
                 case VT_OBJECT:
                     a_buffer.append( "{" );
-                    for ( ObjectIter i = m_value.o->begin(); i != m_value.o->end(); i++ ) {
+                    for ( ObjectIter i = m_value.o->begin(); i != m_value.o->end(); ++i ) {
                         if ( i != m_value.o->begin() ) {
                             a_buffer.append( ",\"" );
                         } else {
@@ -874,7 +874,7 @@ namespace libjson {
                     break;
                 case VT_ARRAY:
                     a_buffer.append( "[" );
-                    for ( ArrayIter i = m_value.a->begin(); i != m_value.a->end(); i++ ) {
+                    for ( ArrayIter i = m_value.a->begin(); i != m_value.a->end(); ++i ) {
                         if ( i != m_value.a->begin() ) {
                             a_buffer.append( "," );
                         }
@@ -907,7 +907,7 @@ namespace libjson {
 
             a_buffer.append( "\"" );
 
-            for ( c = a_value.begin(); c != a_value.end(); c++ ) {
+            for ( c = a_value.begin(); c != a_value.end(); ++c ) {
                 if ( *c < 0x20 ) {
                     a_buffer.append( a, c );
                     a = c + 1;
