@@ -2,13 +2,11 @@
 #define LIBJSON_HPP
 
 #include <stdexcept>
-#include <cstdlib>
 #include <vector>
 #include <map>
 #include <string>
-
 #include <stdint.h>
-#include <math.h>
+
 
 int fpconv_dtoa(double fp, char dest[24]);
 
@@ -20,14 +18,13 @@ namespace libjson {
     * @class ParseError
     * @brief Parse exception class to capture parse offset of error
     */
-    class ParseError : public std::exception
-    {
+    class ParseError : public std::exception {
     public:
         ParseError( const char* a_msg, size_t a_pos ) : m_msg( a_msg ), m_pos( a_pos ) {
         }
 
         const char * what() const noexcept {
-            if ( !m_buf.size() ){
+            if ( !m_buf.size() ) {
                 m_buf = std::string( m_msg ) + " at position " + std::to_string( m_pos );
             }
             return m_buf.c_str();
@@ -59,8 +56,7 @@ namespace libjson {
     #define  ERR_INVALID_ESC( p ) throw ParseError( "Invalid escape sequence", (size_t)p )
     #define  ERR_INVALID_UNICODE( p ) throw ParseError( "Invalid unicode escape sequence", (size_t)p )
 
-    class Value
-    {
+    class Value {
     public:
         typedef std::map<std::string, Value>::iterator ObjectIter;
         typedef std::map<std::string, Value>::const_iterator ObjectConstIter;
@@ -69,8 +65,7 @@ namespace libjson {
         typedef std::vector<Value>::iterator ArrayIter;
         typedef std::vector<Value>::const_iterator ArrayConstIter;
 
-        enum ValueType : uint8_t
-        {
+        enum ValueType : uint8_t {
             VT_NULL = 0,
             VT_OBJECT,
             VT_ARRAY,
@@ -83,24 +78,19 @@ namespace libjson {
         * @class Object
         * @brief Provides a wrapper around underlying map to provide helper methods
         */
-        class Object
-        {
+        class Object {
         public:
-            Object()
-            {
+            Object() {
                 m_iter = m_map.end();
             }
 
-            ~Object()
-            {}
+            ~Object() {}
 
-            inline size_t size()
-            {
+            inline size_t size() {
                 return m_map.size();
             }
 
-            inline void clear()
-            {
+            inline void clear() {
                 m_map.clear();
                 m_iter = m_map.end();
             }
@@ -141,8 +131,7 @@ namespace libjson {
                 iter->second.typeConversionError( a_key, "object" );
             }
 
-            const Object& getObject( const std::string& a_key ) const
-            {
+            const Object& getObject( const std::string& a_key ) const {
                 ObjectConstIter iter = m_map.find( a_key );
 
                 if ( iter == m_map.end() ) {
@@ -155,106 +144,105 @@ namespace libjson {
                 iter->second.typeConversionError( a_key, "object" );
             }
 
-            Array& getArray( const std::string& a_key )
-            {
+            Array& getArray( const std::string& a_key ) {
                 ObjectIter iter = m_map.find( a_key );
 
                 if ( iter == m_map.end() ) {
                     throw std::runtime_error( std::string( "Key not found: " ) + a_key );
                 }
 
-                if ( iter->second.m_type == VT_ARRAY )
+                if ( iter->second.m_type == VT_ARRAY ) {
                     return *iter->second.m_value.a;
+                }
 
                 iter->second.typeConversionError( a_key, "array" );
             }
 
-            const Array& getArray( const std::string& a_key ) const
-            {
+            const Array& getArray( const std::string& a_key ) const {
                 ObjectConstIter iter = m_map.find( a_key );
 
                 if ( iter == m_map.end() ) {
                     throw std::runtime_error( std::string( "Key not found: " ) + a_key );
                 }
 
-                if ( iter->second.m_type == VT_ARRAY )
+                if ( iter->second.m_type == VT_ARRAY ) {
                     return *iter->second.m_value.a;
+                }
 
                 iter->second.typeConversionError( a_key, "array" );
             }
 
 
-            bool getBool( const std::string& a_key ) const
-            {
+            bool getBool( const std::string& a_key ) const {
                 ObjectConstIter iter = m_map.find( a_key );
 
                 if ( iter == m_map.end() ) {
                     throw std::runtime_error( std::string( "Key not found: " ) + a_key );
                 }
 
-                if ( iter->second.m_type == VT_BOOL )
+                if ( iter->second.m_type == VT_BOOL ) {
                     return iter->second.m_value.b;
-                else if ( iter->second.m_type == VT_NUMBER )
+                } else if ( iter->second.m_type == VT_NUMBER ) {
                     return (bool)iter->second.m_value.n;
+                }
 
                 iter->second.typeConversionError( a_key, "bool" );
             }
 
-            double getNumber( const std::string& a_key ) const
-            {
+            double getNumber( const std::string& a_key ) const {
                 ObjectConstIter iter = m_map.find( a_key );
 
                 if ( iter == m_map.end() ) {
                     throw std::runtime_error( std::string( "Key not found: " ) + a_key );
                 }
 
-                if ( iter->second.m_type == VT_NUMBER )
+                if ( iter->second.m_type == VT_NUMBER ) {
                     return iter->second.m_value.n;
-                else if ( iter->second.m_type == VT_BOOL )
+                } else if ( iter->second.m_type == VT_BOOL ) {
                     return iter->second.m_value.b ? 1 : 0;
+                }
 
                 iter->second.typeConversionError( a_key, "number" );
             }
 
-            const std::string& getString( const std::string& a_key ) const
-            {
+            const std::string& getString( const std::string& a_key ) const {
                 ObjectConstIter iter = m_map.find( a_key );
 
                 if ( iter == m_map.end() ) {
                     throw std::runtime_error( std::string( "Key not found: " ) + a_key );
                 }
 
-                if ( iter->second.m_type == VT_STRING )
+                if ( iter->second.m_type == VT_STRING ) {
                     return *iter->second.m_value.s;
+                }
 
                 iter->second.typeConversionError( a_key, "string" );
             }
 
-            std::string& getString( const std::string& a_key )
-            {
+            std::string& getString( const std::string& a_key ) {
                 ObjectIter iter = m_map.find( a_key );
 
                 if ( iter == m_map.end() ) {
                     throw std::runtime_error( std::string( "Key not found: " ) + a_key );
                 }
 
-                if ( iter->second.m_type == VT_STRING )
+                if ( iter->second.m_type == VT_STRING ) {
                     return *iter->second.m_value.s;
+                }
 
                 iter->second.typeConversionError( a_key, "string" );
             }
 
             // Checks if key is present, sets internal iterator to entry
 
-            inline bool has( const std::string& a_key ) const
-            {
+            inline bool has( const std::string& a_key ) const {
                 return (m_iter = m_map.find( a_key )) != m_map.end();
             }
 
             // The following methods can be called after has() (sets internal iterator to entry)
 
             Value & value() {
-                if ( m_iter == m_map.end() ){
+                if ( m_iter == m_map.end() ) {
                     throw std::runtime_error( "Key not set" );
                 }
 
@@ -262,7 +250,7 @@ namespace libjson {
             }
 
             const Value & value() const {
-                if ( m_iter == m_map.end() ){
+                if ( m_iter == m_map.end() ) {
                     throw std::runtime_error( "Key not set" );
                 }
 
@@ -298,10 +286,11 @@ namespace libjson {
                     throw std::runtime_error( "No key set" );
                 }
 
-                if ( m_iter->second.m_type == VT_NUMBER )
+                if ( m_iter->second.m_type == VT_NUMBER ) {
                     return m_iter->second.m_value.n;
-                else if ( m_iter->second.m_type == VT_BOOL )
+                } else if ( m_iter->second.m_type == VT_BOOL ) {
                     return m_iter->second.m_value.b ? 1 : 0;
+                }
 
                 m_iter->second.typeConversionError( m_iter->first, "number" );
             }
@@ -311,203 +300,179 @@ namespace libjson {
                     throw std::runtime_error( "Key not set" );
                 }
 
-                if ( m_iter->second.m_type == VT_BOOL )
+                if ( m_iter->second.m_type == VT_BOOL ) {
                     return m_iter->second.m_value.b;
-                else if ( m_iter->second.m_type == VT_NUMBER )
+                } else if ( m_iter->second.m_type == VT_NUMBER ) {
                     return (bool)m_iter->second.m_value.n;
+                }
 
                 m_iter->second.typeConversionError( m_iter->first, "boolean" );
             }
 
-            Object& asObject()
-            {
-                if ( m_iter == m_map.end() )
+            Object& asObject() {
+                if ( m_iter == m_map.end() ) {
                     throw std::runtime_error( "Key not set" );
+                }
 
-                if ( m_iter->second.m_type == VT_OBJECT )
+                if ( m_iter->second.m_type == VT_OBJECT ) {
                     return *m_iter->second.m_value.o;
+                }
 
                 m_iter->second.typeConversionError( m_iter->first, "object" );
             }
 
-            const Object& asObject() const
-            {
-                if ( m_iter == m_map.end() )
+            const Object& asObject() const {
+                if ( m_iter == m_map.end() ) {
                     throw std::runtime_error( "Key not set" );
+                }
 
-                if ( m_iter->second.m_type == VT_OBJECT )
+                if ( m_iter->second.m_type == VT_OBJECT ) {
                     return *m_iter->second.m_value.o;
+                }
 
                 m_iter->second.typeConversionError( m_iter->first, "object" );
             }
 
-            Array& asArray()
-            {
-                if ( m_iter == m_map.end() )
+            Array& asArray() {
+                if ( m_iter == m_map.end() ) {
                     throw std::runtime_error( "Key not set" );
+                }
 
-                if ( m_iter->second.m_type == VT_ARRAY )
+                if ( m_iter->second.m_type == VT_ARRAY ) {
                     return *m_iter->second.m_value.a;
+                }
 
                 m_iter->second.typeConversionError( m_iter->first, "array" );
             }
 
-            const Array& asArray() const
-            {
-                if ( m_iter == m_map.end() )
+            const Array& asArray() const {
+                if ( m_iter == m_map.end() ) {
                     throw std::runtime_error( "Key not set" );
+                }
 
-                if ( m_iter->second.m_type == VT_ARRAY )
+                if ( m_iter->second.m_type == VT_ARRAY ) {
                     return *m_iter->second.m_value.a;
+                }
 
                 m_iter->second.typeConversionError( m_iter->first, "array" );
             }
 
             // The following methods provide a lower-level map-like interface
 
-            inline ObjectIter find( const std::string& a_key )
-            {
+            inline ObjectIter find( const std::string& a_key ) {
                 return m_map.find( a_key );
             }
 
-            inline ObjectConstIter find( const std::string& a_key ) const
-            {
+            inline ObjectConstIter find( const std::string& a_key ) const {
                 return m_map.find( a_key );
             }
 
-            inline ObjectIter begin()
-            {
+            inline ObjectIter begin() {
                 return m_map.begin();
             }
 
-            inline ObjectConstIter begin() const
-            {
+            inline ObjectConstIter begin() const {
                 return m_map.begin();
             }
 
-            inline ObjectIter end()
-            {
+            inline ObjectIter end() {
                 return m_map.end();
             }
 
-            inline ObjectConstIter end() const
-            {
+            inline ObjectConstIter end() const {
                 return m_map.end();
             }
 
-            Value& operator[]( const std::string& a_key )
-            {
+            Value& operator[]( const std::string& a_key ) {
                 return m_map[a_key];
             }
 
-            Value& at( const std::string& a_key )
-            {
+            Value& at( const std::string& a_key ) {
                 ObjectIter iter = m_map.find( a_key );
-                if ( iter != m_map.end())
+
+                if ( iter != m_map.end()) {
                     return iter->second;
+                }
 
                 throw std::runtime_error( std::string( "Key " ) + a_key + " not present" );
             }
 
-            const Value& at( const std::string& a_key ) const
-            {
+            const Value& at( const std::string& a_key ) const {
                 ObjectConstIter iter = m_map.find( a_key );
-                if ( iter != m_map.end() )
+
+                if ( iter != m_map.end() ) {
                     return iter->second;
+                }
 
                 throw std::runtime_error( std::string( "Key " ) + a_key + " not present" );
             }
 
-            void erase( const std::string& a_key )
-            {
+            void erase( const std::string& a_key ) {
                 m_map.erase( a_key );
             }
 
         private:
-            std::map<std::string, Value>    m_map;
-            mutable ObjectConstIter         m_iter;
+            std::map<std::string, Value>    m_map;      ///< Map containing object key-value pairs
+            mutable ObjectConstIter         m_iter;     ///< Internal iterator for has() / asType() methods
         };
 
 
-        Value() :
-            m_type( VT_NULL ), m_value( { 0 } )
-        {}
+        Value() : m_type( VT_NULL ), m_value( { 0 } ) {}
 
-        Value( bool a_value ) :
-            m_type( VT_BOOL )
-        {
+        Value( bool a_value ) : m_type( VT_BOOL ) {
             m_value.b = a_value;
         }
 
-        Value( double a_value ) :
-            m_type( VT_NUMBER )
-        {
+        Value( double a_value ) : m_type( VT_NUMBER ) {
             m_value.n = a_value;
         }
 
-        Value( int a_value ) :
-            m_type( VT_NUMBER )
-        {
+        Value( int a_value ) : m_type( VT_NUMBER ) {
             m_value.n = a_value;
         }
 
-        Value( const std::string& a_value ) :
-            m_type( VT_STRING )
-        {
+        Value( const std::string& a_value ) : m_type( VT_STRING ) {
             m_value.s = new String( a_value );
         }
 
-        Value( const char* a_value ) :
-            m_type( VT_STRING )
-        {
+        Value( const char* a_value ) : m_type( VT_STRING ) {
             m_value.s = new String( a_value );
         }
 
+        /// No copy - would require expensive deep-copy for object and array
         Value( const Value& a_source ) = delete;
 
-        Value( Value&& a_source ) :
-            m_type( a_source.m_type ), m_value( a_source.m_value )
-        {
+        // Move ctor
+        Value( Value&& a_source ) : m_type( a_source.m_type ), m_value( a_source.m_value ) {
             a_source.m_type = VT_NULL;
             a_source.m_value.o = 0;
         }
 
-
-        Value( ValueType a_type ) :
-            m_type( a_type )
-        {
-            if ( m_type == VT_OBJECT )
-            {
+        Value( ValueType a_type ) : m_type( a_type ) {
+            if ( m_type == VT_OBJECT ) {
                 m_value.o = new Object();
-            }
-            else if ( m_type == VT_ARRAY )
-            {
+            } else if ( m_type == VT_ARRAY ) {
                 m_value.a = new Array();
-            }
-            else if ( m_type == VT_STRING )
-            {
+            } else if ( m_type == VT_STRING ) {
                 m_value.s = new String();
-            }
-            else
-            {
+            } else {
                 m_value.o = 0;
             }
         }
 
-        ~Value()
-        {
-            if ( m_type == VT_STRING )
+        ~Value() {
+            if ( m_type == VT_STRING ) {
                 delete m_value.s;
-            else if ( m_type == VT_OBJECT )
+            } else if ( m_type == VT_OBJECT ) {
                 delete m_value.o;
-            else if ( m_type == VT_ARRAY )
+            } else if ( m_type == VT_ARRAY ) {
                 delete m_value.a;
+            }
         }
 
-        Value& operator=( Value&& a_source )
-        {
-            if ( this != &a_source )
-            {
+        // Move assignment
+        Value& operator=( Value&& a_source ) {
+            if ( this != &a_source ) {
                 ValueType   type = a_source.m_type;
                 ValueUnion  value = a_source.m_value;
 
@@ -523,10 +488,9 @@ namespace libjson {
             return *this;
         }
 
-        Value& operator=( Value& a_source )
-        {
-            if ( this != &a_source )
-            {
+        // TODO Why have this? It destroys the original. Prob should DELETE
+        Value& operator=( Value& a_source ) {
+            if ( this != &a_source ) {
                 ValueType   type = a_source.m_type;
                 ValueUnion  value = a_source.m_value;
 
@@ -542,10 +506,8 @@ namespace libjson {
             return *this;
         }
 
-        Value& operator=( bool a_value )
-        {
-            if ( m_type != VT_BOOL )
-            {
+        Value& operator=( bool a_value ) {
+            if ( m_type != VT_BOOL ) {
                 this->~Value();
                 m_type = VT_BOOL;
                 m_value.o = 0;
@@ -556,10 +518,8 @@ namespace libjson {
             return *this;
         }
 
-        Value& operator=( double a_value )
-        {
-            if ( m_type != VT_NUMBER )
-            {
+        Value& operator=( double a_value ) {
+            if ( m_type != VT_NUMBER ) {
                 this->~Value();
                 m_type = VT_NUMBER;
                 m_value.o = 0;
@@ -570,10 +530,8 @@ namespace libjson {
             return *this;
         }
 
-        Value& operator=( int a_value )
-        {
-            if ( m_type != VT_NUMBER )
-            {
+        Value& operator=( int a_value ) {
+            if ( m_type != VT_NUMBER ) {
                 this->~Value();
                 m_type = VT_NUMBER;
                 m_value.o = 0;
@@ -584,10 +542,8 @@ namespace libjson {
             return *this;
         }
 
-        Value& operator=( size_t a_value )
-        {
-            if ( m_type != VT_NUMBER )
-            {
+        Value& operator=( size_t a_value ) {
+            if ( m_type != VT_NUMBER ) {
                 this->~Value();
                 m_type = VT_NUMBER;
                 m_value.o = 0;
@@ -598,10 +554,8 @@ namespace libjson {
             return *this;
         }
 
-        Value& operator=( const std::string& a_value )
-        {
-            if ( m_type != VT_STRING )
-            {
+        Value& operator=( const std::string& a_value ) {
+            if ( m_type != VT_STRING ) {
                 this->~Value();
                 m_type = VT_STRING;
                 m_value.s = new String( a_value );
@@ -612,10 +566,8 @@ namespace libjson {
             return *this;
         }
 
-        Value& operator=( const char* a_value )
-        {
-            if ( m_type != VT_STRING )
-            {
+        Value& operator=( const char* a_value ) {
+            if ( m_type != VT_STRING ) {
                 this->~Value();
                 m_type = VT_STRING;
                 m_value.s = new String( a_value );
@@ -626,150 +578,107 @@ namespace libjson {
             return *this;
         }
 
-        inline ValueType
-            getType() const
-        {
+        inline ValueType getType() const {
             return m_type;
         }
 
-        const char* getTypeString() const
-        {
-            switch ( m_type )
-            {
-            case VT_NULL: return "NULL";
-            case VT_OBJECT: return "OBJECT";
-            case VT_ARRAY: return "ARRAY";
-            case VT_STRING: return "STRING";
-            case VT_NUMBER: return "NUMBER";
-            case VT_BOOL: return "BOOL";
-            default: return "INVALID";
+        const char* getTypeString() const {
+            switch ( m_type ) {
+                case VT_NULL: return "NULL";
+                case VT_OBJECT: return "OBJECT";
+                case VT_ARRAY: return "ARRAY";
+                case VT_STRING: return "STRING";
+                case VT_NUMBER: return "NUMBER";
+                case VT_BOOL: return "BOOL";
+                default: return "INVALID";
             }
         }
 
-        inline bool isNull() const
-        {
+        inline bool isNull() const {
             return m_type == VT_NULL;
         }
 
-        inline bool isObject() const
-        {
+        inline bool isObject() const {
             return m_type == VT_OBJECT;
         }
 
-        inline bool isArray() const
-        {
+        inline bool isArray() const {
             return m_type == VT_ARRAY;
         }
 
-        inline bool isString() const
-        {
+        inline bool isString() const {
             return m_type == VT_STRING;
         }
 
-        inline bool isNumber() const
-        {
+        inline bool isNumber() const {
             return m_type == VT_NUMBER;
         }
 
-        inline bool isBool() const
-        {
+        inline bool isBool() const {
             return m_type == VT_BOOL;
         }
 
-        bool asBool() const
-        {
-            if ( m_type == VT_BOOL )
+        bool asBool() const {
+            if ( m_type == VT_BOOL ) {
                 return m_value.b;
-            else if ( m_type == VT_NUMBER )
+            } else if ( m_type == VT_NUMBER ) {
                 return (bool)m_value.n;
+            }
 
             typeConversionError( "boolean" );
         }
 
-        //friend asBool( const ObjectConstIter & a_iter );
-        /*
-        {
-            if ( a_iter->second.m_type == VT_BOOL )
-                return a_iter->second.m_value.b;
-            else if ( a_iter->second.m_type == VT_NUMBER )
-                return (bool)a_iter->second.m_value.n;
-
-            typeConversionError( a_iter->first, "boolean" );
-        }*/
-
-        double asNumber() const
-        {
-            if ( m_type == VT_NUMBER )
+        double asNumber() const {
+            if ( m_type == VT_NUMBER ) {
                 return m_value.n;
-            else if ( m_type == VT_BOOL )
+            } else if ( m_type == VT_BOOL ) {
                 return m_value.b ? 1 : 0;
+            }
 
             typeConversionError( "number" );
         }
 
-        std::string& asString()
-        {
-            if ( m_type == VT_STRING )
+        std::string& asString() {
+            if ( m_type == VT_STRING ) {
                 return *m_value.s;
+            }
 
             typeConversionError( "string" );
         }
 
-        const std::string& asString() const
-        {
-            if ( m_type == VT_STRING )
+        const std::string& asString() const {
+            if ( m_type == VT_STRING ) {
                 return *m_value.s;
+            }
 
             typeConversionError( "string" );
         }
-
-        // Helper function to get value from an iterator
-        //friend std::string& asString( const std::map<std::string, Value>::const_iterator& iter );
-        /*
-        {
-            if ( iter->second.m_type == VT_STRING )
-                return *iter->second.m_value.s;
-
-            iter->second.typeConversionError( iter->first, "string" );
-        }*/
-
-        //friend const std::string& asStringConst( const std::map<std::string, Value>::const_iterator& iter );
-        /*
-        {
-            const Value& val = iter->second;
-
-            if ( val.m_type == VT_STRING )
-                return *val.m_value.s;
-
-            typeConversionError( iter->first, "string" );
-        }*/
 
         // ----- Object & Array Methods -----
 
-        size_t size() const
-        {
-            if ( m_type == VT_OBJECT )
+        size_t size() const {
+            if ( m_type == VT_OBJECT ) {
                 return m_value.o->size();
-            else if ( m_type == VT_ARRAY )
+            } else if ( m_type == VT_ARRAY ) {
                 return m_value.a->size();
+            }
 
             throw std::runtime_error( "Value::size() requires object or array type" );
         }
 
-        void clear()
-        {
-            if ( m_type == VT_OBJECT )
+        void clear() {
+            if ( m_type == VT_OBJECT ) {
                 m_value.o->clear();
-            else if ( m_type == VT_ARRAY )
+            } else if ( m_type == VT_ARRAY ) {
                 m_value.a->clear();
-            else
+            } else {
                 m_value.o = 0;
+            }
         }
 
         // ----- Object-only Methods -----
 
-        Object& initObject()
-        {
+        Object& initObject() {
             this->~Value();
             m_type = VT_OBJECT;
             m_value.o = new Object();
@@ -777,17 +686,16 @@ namespace libjson {
             return *m_value.o;
         }
 
-        Object & asObject()
-        {
-            if ( m_type != VT_OBJECT )
+        Object & asObject() {
+            if ( m_type != VT_OBJECT ) {
                 throw std::runtime_error( "Value is not an object" );
+            }
 
             return *m_value.o;
         }
 
-        const Object & asObject() const
-        {
-            if ( m_type != VT_OBJECT ){
+        const Object & asObject() const {
+            if ( m_type != VT_OBJECT ) {
                 throw std::runtime_error( "Value is not an object" );
             }
 
@@ -796,8 +704,7 @@ namespace libjson {
 
         // ----- Array-only Methods -----
 
-        Array& initArray()
-        {
+        Array& initArray() {
             this->~Value();
             m_type = VT_ARRAY;
             m_value.a = new Array();
@@ -805,18 +712,16 @@ namespace libjson {
             return *m_value.a;
         }
 
-        Array& asArray()
-        {
-            if ( m_type != VT_ARRAY ){
+        Array& asArray() {
+            if ( m_type != VT_ARRAY ) {
                 throw std::runtime_error( "Value is not an array" );
             }
 
             return *m_value.a;
         }
 
-        const Array & asArray() const
-        {
-            if ( m_type != VT_ARRAY ){
+        const Array & asArray() const {
+            if ( m_type != VT_ARRAY ) {
                 throw std::runtime_error( "Value is not an array" );
             }
 
@@ -825,26 +730,20 @@ namespace libjson {
 
         // ----- To/From String Methods -----
 
-        std::string toString() const
-        {
+        std::string toString() const {
             std::string buffer;
-
             buffer.reserve( 4096 );
-
             toStringRecurse( buffer );
 
             return buffer;
         }
 
-        inline void fromString( const std::string& a_raw_json )
-        {
+        inline void fromString( const std::string& a_raw_json ) {
             fromString( a_raw_json.c_str() );
         }
 
-        void fromString( const char* a_raw_json )
-        {
-            if ( m_type != VT_NULL )
-            {
+        void fromString( const char* a_raw_json ) {
+            if ( m_type != VT_NULL ) {
                 this->~Value();
                 m_type = VT_NULL;
                 m_value.o = 0;
@@ -853,49 +752,44 @@ namespace libjson {
             const char* c = a_raw_json;
             uint8_t         state = PS_SEEK_BEG;
 
-            try
-            {
-                while ( *c )
-                {
-                    switch ( state )
-                    {
-                    case PS_SEEK_BEG:
-                        if ( *c == '{' )
-                        {
-                            c = parseObject( *this, c + 1 );
-                            state = PS_SEEK_OBJ_END;
-                        }
-                        else if ( *c == '[' )
-                        {
-                            c = parseArray( *this, c + 1 );
-                            state = PS_SEEK_ARR_END;
-                        }
-                        else if ( notWS( *c ) )
-                            ERR_INVALID_CHAR( c );
-                        break;
-                    case PS_SEEK_OBJ_END:
-                        if ( *c == '}' )
-                            state = PS_SEEK_END;
-                        else if ( notWS( *c ) )
-                            ERR_INVALID_CHAR( c );
-                        break;
-                    case PS_SEEK_ARR_END:
-                        if ( *c == ']' )
-                            state = PS_SEEK_END;
-                        else if ( notWS( *c ) )
-                            ERR_INVALID_CHAR( c );
-                        break;
-                    case PS_SEEK_END:
-                        if ( notWS( *c ) )
-                            ERR_INVALID_CHAR( c );
-                        break;
+            try {
+                while ( *c ) {
+                    switch ( state ) {
+                        case PS_SEEK_BEG:
+                            if ( *c == '{' ) {
+                                c = parseObject( *this, c + 1 );
+                                state = PS_SEEK_OBJ_END;
+                            } else if ( *c == '[' ) {
+                                c = parseArray( *this, c + 1 );
+                                state = PS_SEEK_ARR_END;
+                            } else if ( notWS( *c )) {
+                                ERR_INVALID_CHAR( c );
+                            }
+                            break;
+                        case PS_SEEK_OBJ_END:
+                            if ( *c == '}' ) {
+                                state = PS_SEEK_END;
+                            } else if ( notWS( *c )) {
+                                ERR_INVALID_CHAR( c );
+                            }
+                            break;
+                        case PS_SEEK_ARR_END:
+                            if ( *c == ']' ) {
+                                state = PS_SEEK_END;
+                            } else if ( notWS( *c )) {
+                                ERR_INVALID_CHAR( c );
+                            }
+                            break;
+                        case PS_SEEK_END:
+                            if ( notWS( *c )) {
+                                ERR_INVALID_CHAR( c );
+                            }
+                            break;
                     }
 
                     c++;
                 }
-            }
-            catch ( ParseError& e )
-            {
+            } catch ( ParseError& e ) {
                 e.setOffset( (size_t)a_raw_json );
                 throw;
             }
@@ -911,32 +805,29 @@ namespace libjson {
             throw std::runtime_error( std::string( "Invalid conversion of " ) + getTypeString() + " to " + a_type + " for key " + a_key );
         }
 
-        inline bool notWS( char c ) const
-        {
+        inline bool notWS( char c ) const {
             return !(c == ' ' || c == '\n' || c == '\t' || c == '\r');
         }
 
-        inline bool isDigit( char c ) const
-        {
-            return (c >= '0' && c <= '9');
+        inline bool isDigit( char c ) const {
+            return ( c >= '0' && c <= '9' );
         }
 
-        uint8_t toHex( const char* C )
-        {
+        uint8_t toHex( const char* C ) {
             char c = *C;
 
-            if ( c >= '0' && c <= '9' )
+            if ( c >= '0' && c <= '9' ) {
                 return (uint8_t)(c - '0');
-            else if ( c >= 'A' && c <= 'F' )
+            } else if ( c >= 'A' && c <= 'F' ) {
                 return (uint8_t)(10 + c - 'A');
-            else if ( c >= 'a' && c <= 'f' )
+            } else if ( c >= 'a' && c <= 'f' ) {
                 return (uint8_t)(10 + c - 'a');
-            else
+            } else {
                 ERR_INVALID_CHAR( C );
+            }
         }
 
-        enum ParseState : uint8_t
-        {
+        enum ParseState : uint8_t {
             PS_SEEK_BEG,
             PS_SEEK_KEY,
             PS_IN_KEY,
@@ -955,8 +846,7 @@ namespace libjson {
 
         ValueType   m_type;
 
-        union ValueUnion
-        {
+        union ValueUnion {
             Object*     o;
             Array*      a;
             bool        b;
@@ -965,84 +855,75 @@ namespace libjson {
         } m_value;
 
 
-        void toStringRecurse( std::string& a_buffer ) const
-        {
-            switch ( m_type )
-            {
-            case VT_OBJECT:
-                a_buffer.append( "{" );
-                for ( ObjectIter i = m_value.o->begin(); i != m_value.o->end(); i++ )
-                {
-                    if ( i != m_value.o->begin() )
-                        a_buffer.append( ",\"" );
-                    else
-                        a_buffer.append( "\"" );
-                    a_buffer.append( i->first );
-                    a_buffer.append( "\":" );
+        void toStringRecurse( std::string& a_buffer ) const {
+            switch ( m_type ) {
+                case VT_OBJECT:
+                    a_buffer.append( "{" );
+                    for ( ObjectIter i = m_value.o->begin(); i != m_value.o->end(); i++ ) {
+                        if ( i != m_value.o->begin() ) {
+                            a_buffer.append( ",\"" );
+                        } else {
+                            a_buffer.append( "\"" );
+                        }
+                        a_buffer.append( i->first );
+                        a_buffer.append( "\":" );
 
-                    i->second.toStringRecurse( a_buffer );
-                }
-                a_buffer.append( "}" );
-                break;
-            case VT_ARRAY:
-                a_buffer.append( "[" );
-                for ( ArrayIter i = m_value.a->begin(); i != m_value.a->end(); i++ )
-                {
-                    if ( i != m_value.a->begin() )
-                        a_buffer.append( "," );
-                    i->toStringRecurse( a_buffer );
-                }
-                a_buffer.append( "]" );
-                break;
-            case VT_STRING:
-                strToString( a_buffer, *m_value.s );
-                break;
-            case VT_NUMBER:
-                numToString( a_buffer, m_value.n );
-                break;
-            case VT_BOOL:
-                if ( m_value.b )
-                    a_buffer.append( "true" );
-                else
-                    a_buffer.append( "false" );
-                break;
-            case VT_NULL:
-                a_buffer.append( "null" );
-                break;
+                        i->second.toStringRecurse( a_buffer );
+                    }
+                    a_buffer.append( "}" );
+                    break;
+                case VT_ARRAY:
+                    a_buffer.append( "[" );
+                    for ( ArrayIter i = m_value.a->begin(); i != m_value.a->end(); i++ ) {
+                        if ( i != m_value.a->begin() ) {
+                            a_buffer.append( "," );
+                        }
+                        i->toStringRecurse( a_buffer );
+                    }
+                    a_buffer.append( "]" );
+                    break;
+                case VT_STRING:
+                    strToString( a_buffer, *m_value.s );
+                    break;
+                case VT_NUMBER:
+                    numToString( a_buffer, m_value.n );
+                    break;
+                case VT_BOOL:
+                    if ( m_value.b ) {
+                        a_buffer.append( "true" );
+                    } else {
+                        a_buffer.append( "false" );
+                    }
+                    break;
+                case VT_NULL:
+                    a_buffer.append( "null" );
+                    break;
             }
         }
 
-        inline void strToString( std::string& a_buffer, const std::string& a_value ) const
-        {
+        inline void strToString( std::string& a_buffer, const std::string& a_value ) const {
             std::string::const_iterator c = a_value.begin();
             std::string::const_iterator a = c;
 
             a_buffer.append( "\"" );
 
-            for ( c = a_value.begin(); c != a_value.end(); c++ )
-            {
-                if ( *c < 0x20 )
-                {
+            for ( c = a_value.begin(); c != a_value.end(); c++ ) {
+                if ( *c < 0x20 ) {
                     a_buffer.append( a, c );
                     a = c + 1;
 
-                    switch ( *c )
-                    {
-                    case '\b':  a_buffer.append( "\\b" ); break;
-                    case '\f':  a_buffer.append( "\\f" ); break;
-                    case '\n':  a_buffer.append( "\\n" ); break;
-                    case '\r':  a_buffer.append( "\\r" ); break;
-                    case '\t':  a_buffer.append( "\\t" ); break;
+                    switch ( *c ) {
+                        case '\b':  a_buffer.append( "\\b" ); break;
+                        case '\f':  a_buffer.append( "\\f" ); break;
+                        case '\n':  a_buffer.append( "\\n" ); break;
+                        case '\r':  a_buffer.append( "\\r" ); break;
+                        case '\t':  a_buffer.append( "\\t" ); break;
                     }
-                }
-                else if ( *c == '\"' )
-                {
+                } else if ( *c == '\"' ) {
                     a_buffer.append( a, c );
                     a_buffer.append( "\\\"" );
                     a = c + 1;
-                }
-                else if ( *c == '\\' )
-                {
+                } else if ( *c == '\\' ) {
                     a_buffer.append( a, c );
                     a_buffer.append( "\\\\" );
                     a = c + 1;
@@ -1053,16 +934,14 @@ namespace libjson {
             a_buffer.append( "\"" );
         }
 
-        inline void numToString( std::string& a_buffer, double a_value ) const
-        {
+        inline void numToString( std::string& a_buffer, double a_value ) const {
             size_t sz1 = a_buffer.size();
             a_buffer.resize( sz1 + 50 );
             int sz2 = fpconv_dtoa( a_value, (char*)a_buffer.c_str() + sz1 );
             a_buffer.resize( sz1 + sz2 );
         }
 
-        const char* parseObject( Value& a_parent, const char* start )
-        {
+        const char* parseObject( Value& a_parent, const char* start ) {
             // On function entry, c is next char after '{'
 
             uint8_t         state = PS_SEEK_KEY;
@@ -1072,47 +951,46 @@ namespace libjson {
             a_parent.m_type = VT_OBJECT;
             a_parent.m_value.o = new Object();
 
-            while ( *c )
-            {
-                switch ( state )
-                {
-                case PS_SEEK_KEY:
-                    if ( *c == '}' )
-                        return c;
-                    else if ( *c == '"' )
-                    {
-                        c = parseString( key, c + 1 );
+            while ( *c ) {
+                switch ( state ) {
+                    case PS_SEEK_KEY:
+                        if ( *c == '}' ) {
+                            return c;
+                        } else if ( *c == '"' ) {
+                            c = parseString( key, c + 1 );
 
-                        if ( !key.size() )
-                            ERR_INVALID_KEY( c );
+                            if ( !key.size() ) {
+                                ERR_INVALID_KEY( c );
+                            }
 
-                        state = PS_SEEK_SEP;
-                    }
-                    else if ( notWS( *c ) )
-                        ERR_INVALID_CHAR( c );
-                    break;
-                case PS_SEEK_SEP:
-                    if ( *c == ':' )
-                        state = PS_SEEK_VAL;
-                    else if ( notWS( *c ) )
-                        ERR_INVALID_CHAR( c );
-                    break;
-                case PS_SEEK_VAL:
-                    if ( notWS( *c ) )
-                    {
-                        c = parseValue( (*a_parent.m_value.o)[key], c );
-                        state = PS_SEEK_OBJ_END;
-                    }
-                    break;
+                            state = PS_SEEK_SEP;
+                        } else if ( notWS( *c ) ) {
+                            ERR_INVALID_CHAR( c );
+                        }
+                        break;
+                    case PS_SEEK_SEP:
+                        if ( *c == ':' ) {
+                            state = PS_SEEK_VAL;
+                        } else if ( notWS( *c ) ) {
+                            ERR_INVALID_CHAR( c );
+                        }
+                        break;
+                    case PS_SEEK_VAL:
+                        if ( notWS( *c ) ) {
+                            c = parseValue( (*a_parent.m_value.o)[key], c );
+                            state = PS_SEEK_OBJ_END;
+                        }
+                        break;
 
-                case PS_SEEK_OBJ_END:
-                    if ( *c == ',' )
-                        state = PS_SEEK_KEY;
-                    else if ( *c == '}' )
-                        return c;
-                    else if ( notWS( *c ) )
-                        ERR_INVALID_CHAR( c );
-                    break;
+                    case PS_SEEK_OBJ_END:
+                        if ( *c == ',' ) {
+                            state = PS_SEEK_KEY;
+                        } else if ( *c == '}' ) {
+                            return c;
+                        } else if ( notWS( *c ) ) {
+                            ERR_INVALID_CHAR( c );
+                        }
+                        break;
                 }
 
                 c++;
@@ -1121,8 +999,7 @@ namespace libjson {
             ERR_UNTERMINATED_OBJECT( start );
         }
 
-        const char* parseArray( Value& a_parent, const char* start )
-        {
+        const char* parseArray( Value& a_parent, const char* start ) {
             // On function entry, c is next char after '['
             const char* c = start;
             uint8_t         state = PS_SEEK_VAL;
@@ -1132,28 +1009,26 @@ namespace libjson {
             a_parent.m_value.a = new Array();
             a_parent.m_value.a->reserve( 20 );
 
-            while ( *c )
-            {
-                switch ( state )
-                {
-                case PS_SEEK_VAL:
-                    if ( *c == ']' )
-                        return c;
-                    else if ( notWS( *c ) )
-                    {
-                        c = parseValue( value, c );
-                        a_parent.m_value.a->push_back( std::move( value ) );
-                        state = PS_SEEK_SEP;
-                    }
-                    break;
-                case PS_SEEK_SEP:
-                    if ( *c == ',' )
-                        state = PS_SEEK_VAL;
-                    else if ( *c == ']' )
-                        return c;
-                    else if ( notWS( *c ) )
-                        ERR_INVALID_CHAR( c );
-                    break;
+            while ( *c ) {
+                switch ( state ) {
+                    case PS_SEEK_VAL:
+                        if ( *c == ']' ) {
+                            return c;
+                        } else if ( notWS( *c ) ) {
+                            c = parseValue( value, c );
+                            a_parent.m_value.a->push_back( std::move( value ) );
+                            state = PS_SEEK_SEP;
+                        }
+                        break;
+                    case PS_SEEK_SEP:
+                        if ( *c == ',' ) {
+                            state = PS_SEEK_VAL;
+                        } else if ( *c == ']' ) {
+                            return c;
+                        } else if ( notWS( *c ) ) {
+                            ERR_INVALID_CHAR( c );
+                        }
+                        break;
                 }
 
                 c++;
@@ -1162,67 +1037,60 @@ namespace libjson {
             ERR_UNTERMINATED_ARRAY( start );
         }
 
-        inline const char* parseValue( Value& a_value, const char* start )
-        {
+        inline const char* parseValue( Value& a_value, const char* start ) {
             const char* c = start;
 
-            while ( *c )
-            {
-                switch ( *c )
-                {
-                case '{':
-                    c = parseObject( a_value, c + 1 );
-                    return c;
-                case '[':
-                    c = parseArray( a_value, c + 1 );
-                    return c;
-                case '"':
-                    a_value.m_type = VT_STRING;
-                    a_value.m_value.s = new String();
-                    c = parseString( *a_value.m_value.s, c + 1 );
-                    return c;
-                case 't':
-                    if ( *(c + 1) == 'r' && *(c + 2) == 'u' && *(c + 3) == 'e' )
-                    {
-                        a_value.m_type = VT_BOOL;
-                        a_value.m_value.b = true;
-                        c += 3;
+            while ( *c ) {
+                switch ( *c ) {
+                    case '{':
+                        c = parseObject( a_value, c + 1 );
                         return c;
-                    }
-                    else
-                        ERR_INVALID_VALUE( c );
-                    break;
-                case 'f':
-                    if ( *(c + 1) == 'a' && *(c + 2) == 'l' && *(c + 3) == 's' && *(c + 4) == 'e' )
-                    {
-                        a_value.m_type = VT_BOOL;
-                        a_value.m_value.b = false;
-                        c += 4;
+                    case '[':
+                        c = parseArray( a_value, c + 1 );
                         return c;
-                    }
-                    else
-                        ERR_INVALID_VALUE( c );
-                    break;
-                case 'n':
-                    if ( *(c + 1) == 'u' && *(c + 2) == 'l' && *(c + 3) == 'l' )
-                    {
-                        a_value.m_type = VT_NULL;
-                        c += 3;
+                    case '"':
+                        a_value.m_type = VT_STRING;
+                        a_value.m_value.s = new String();
+                        c = parseString( *a_value.m_value.s, c + 1 );
                         return c;
-                    }
-                    else
-                        ERR_INVALID_VALUE( c );
-                    break;
-                default:
-                    if ( *c == '-' || isDigit( *c ) || *c == '.' )
-                    {
-                        a_value.m_type = VT_NUMBER;
-                        c = parseNumber( a_value.m_value.n, c );
-                        return c;
-                    }
-                    else if ( notWS( *c ) )
-                        ERR_INVALID_CHAR( c );
-                    break;
+                    case 't':
+                        if ( *(c + 1) == 'r' && *(c + 2) == 'u' && *(c + 3) == 'e' ) {
+                            a_value.m_type = VT_BOOL;
+                            a_value.m_value.b = true;
+                            c += 3;
+                            return c;
+                        } else {
+                            ERR_INVALID_VALUE( c );
+                        }
+                        break;
+                    case 'f':
+                        if ( *(c + 1) == 'a' && *(c + 2) == 'l' && *(c + 3) == 's' && *(c + 4) == 'e' ) {
+                            a_value.m_type = VT_BOOL;
+                            a_value.m_value.b = false;
+                            c += 4;
+                            return c;
+                        } else {
+                            ERR_INVALID_VALUE( c );
+                        }
+                        break;
+                    case 'n':
+                        if ( *(c + 1) == 'u' && *(c + 2) == 'l' && *(c + 3) == 'l' ) {
+                            a_value.m_type = VT_NULL;
+                            c += 3;
+                            return c;
+                        } else {
+                            ERR_INVALID_VALUE( c );
+                        }
+                        break;
+                    default:
+                        if ( *c == '-' || isDigit( *c ) || *c == '.' ) {
+                            a_value.m_type = VT_NUMBER;
+                            c = parseNumber( a_value.m_value.n, c );
+                            return c;
+                        } else if ( notWS( *c ) ) {
+                            ERR_INVALID_CHAR( c );
+                        }
+                        break;
                 }
 
                 c++;
@@ -1231,8 +1099,7 @@ namespace libjson {
             ERR_UNTERMINATED_VALUE( start );
         }
 
-        inline const char* parseString( std::string& a_value, const char* start )
-        {
+        inline const char* parseString( std::string& a_value, const char* start ) {
             // On entry, c is next char after "
             const char* c = start;
             const char* a = start;
@@ -1240,66 +1107,56 @@ namespace libjson {
 
             a_value.clear();
 
-            while ( *c )
-            {
-                if ( *c == '\\' )
-                {
-                    if ( c != a )
+            while ( *c ) {
+                if ( *c == '\\' ) {
+                    if ( c != a ) {
                         a_value.append( a, (unsigned int)( c - a ));
+                    }
 
-                    switch ( *(c + 1) )
-                    {
-                    case 'b':  a_value.append( "\b" ); break;
-                    case 'f':  a_value.append( "\f" ); break;
-                    case 'n':  a_value.append( "\n" ); break;
-                    case 'r':  a_value.append( "\r" ); break;
-                    case 't':  a_value.append( "\t" ); break;
-                    case '/':  a_value.append( "/" ); break;
-                    case '"':  a_value.append( "\"" ); break;
-                    case '\\':  a_value.append( "\\" ); break;
-                    case 'u':
-                        utf8 = ( uint32_t )((toHex( c + 2 ) << 12) | (toHex( c + 3 ) << 8) | (toHex( c + 4 ) << 4) | toHex( c + 5 ));
+                    switch ( *(c + 1) ) {
+                        case 'b':  a_value.append( "\b" ); break;
+                        case 'f':  a_value.append( "\f" ); break;
+                        case 'n':  a_value.append( "\n" ); break;
+                        case 'r':  a_value.append( "\r" ); break;
+                        case 't':  a_value.append( "\t" ); break;
+                        case '/':  a_value.append( "/" ); break;
+                        case '"':  a_value.append( "\"" ); break;
+                        case '\\':  a_value.append( "\\" ); break;
+                        case 'u':
+                            utf8 = ( uint32_t )((toHex( c + 2 ) << 12) | (toHex( c + 3 ) << 8) | (toHex( c + 4 ) << 4) | toHex( c + 5 ));
 
-                        if ( utf8 < 0x80 )
-                            a_value.append( 1, (char)utf8 );
-                        else if ( utf8 < 0x800 )
-                        {
-                            a_value.append( 1, (char)(0xC0 | (utf8 >> 6)) );
-                            a_value.append( 1, (char)(0x80 | (utf8 & 0x3F)) );
-                        }
-                        else if ( utf8 < 0x10000 )
-                        {
-                            a_value.append( 1, (char)(0xE0 | (utf8 >> 12)) );
-                            a_value.append( 1, (char)(0x80 | ((utf8 >> 6) & 0x3F)) );
-                            a_value.append( 1, (char)(0x80 | (utf8 & 0x3F)) );
-                        }
-                        else if ( utf8 < 0x110000 )
-                        {
-                            a_value.append( 1, (char)(0xF0 | (utf8 >> 18)) );
-                            a_value.append( 1, (char)(0x80 | ((utf8 >> 12) & 0x3F)) );
-                            a_value.append( 1, (char)(0x80 | ((utf8 >> 6) & 0x3F)) );
-                            a_value.append( 1, (char)(0x80 | (utf8 & 0x3F)) );
-                        }
-                        else
-                            ERR_INVALID_UNICODE( c );
+                            if ( utf8 < 0x80 ) {
+                                a_value.append( 1, (char)utf8 );
+                            } else if ( utf8 < 0x800 ) {
+                                a_value.append( 1, (char)(0xC0 | (utf8 >> 6)) );
+                                a_value.append( 1, (char)(0x80 | (utf8 & 0x3F)) );
+                            } else if ( utf8 < 0x10000 ) {
+                                a_value.append( 1, (char)(0xE0 | (utf8 >> 12)) );
+                                a_value.append( 1, (char)(0x80 | ((utf8 >> 6) & 0x3F)) );
+                                a_value.append( 1, (char)(0x80 | (utf8 & 0x3F)) );
+                            } else if ( utf8 < 0x110000 ) {
+                                a_value.append( 1, (char)(0xF0 | (utf8 >> 18)) );
+                                a_value.append( 1, (char)(0x80 | ((utf8 >> 12) & 0x3F)) );
+                                a_value.append( 1, (char)(0x80 | ((utf8 >> 6) & 0x3F)) );
+                                a_value.append( 1, (char)(0x80 | (utf8 & 0x3F)) );
+                            } else {
+                                ERR_INVALID_UNICODE( c );
+                            }
 
-                        c += 4;
-                        break;
-                    default:
-                        ERR_INVALID_CHAR( c );
+                            c += 4;
+                            break;
+                        default:
+                            ERR_INVALID_CHAR( c );
                     }
 
                     c++;
                     a = c + 1;
-                }
-                else if ( *c == '"' )
-                {
-                    if ( c != a )
+                } else if ( *c == '"' ) {
+                    if ( c != a ) {
                         a_value.append( a, (unsigned int)(c - a));
+                    }
                     return c;
-                }
-                else if ( *c >= 0 && *c < 0x20 )
-                {
+                } else if ( *c >= 0 && *c < 0x20 ) {
                     ERR_INVALID_CHAR( c );
                 }
 
@@ -1309,44 +1166,13 @@ namespace libjson {
             ERR_UNTERMINATED_VALUE( start );
         }
 
-        inline const char* parseNumber( double& a_value, const char* start )
-        {
+        inline const char* parseNumber( double& a_value, const char* start ) {
             char* end;
             a_value = strtod( start, &end );
 
             return end - 1;
         }
     };
-
-    // TODO - What is the use case for the helper functions? Seems easy enough to simply deref the iter
-
-    // Helper function to get value from an iterator
-    /*
-    bool asBool( const ObjectConstIter & a_iter ){
-        if ( a_iter->second.m_type == VT_BOOL )
-            return a_iter->second.m_value.b;
-        else if ( a_iter->second.m_type == VT_NUMBER )
-            return (bool)a_iter->second.m_value.n;
-
-        typeConversionError( a_iter->first, "boolean" );
-    }
-
-    std::string& asString( const std::map<std::string, Value>::const_iterator& iter )
-    {
-        if ( iter->second.m_type == VT_STRING )
-            return *iter->second.m_value.s;
-
-        iter->second.typeConversionError( iter->first, "string" );
-    }
-
-    const std::string& asStringConst( const std::map<std::string, Value>::const_iterator& iter )
-    {
-        if ( iter->second.m_type == VT_STRING )
-            return *iter->second.m_value.s;
-
-        typeConversionError( iter->first, "string" );
-    }
-    */
 }
 
 #endif
