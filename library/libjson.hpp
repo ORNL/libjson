@@ -419,23 +419,23 @@ namespace libjson {
 
         Value() : m_type( VT_NULL ), m_value( { 0 } ) {}
 
-        Value( bool a_value ) : m_type( VT_BOOL ) {
+        explicit Value( bool a_value ) : m_type( VT_BOOL ) {
             m_value.b = a_value;
         }
 
-        Value( double a_value ) : m_type( VT_NUMBER ) {
+        explicit Value( double a_value ) : m_type( VT_NUMBER ) {
             m_value.n = a_value;
         }
 
-        Value( int a_value ) : m_type( VT_NUMBER ) {
+        explicit Value( int a_value ) : m_type( VT_NUMBER ) {
             m_value.n = a_value;
         }
 
-        Value( const std::string& a_value ) : m_type( VT_STRING ) {
+        explicit Value( const std::string& a_value ) : m_type( VT_STRING ) {
             m_value.s = new String( a_value );
         }
 
-        Value( const char* a_value ) : m_type( VT_STRING ) {
+        explicit Value( const char* a_value ) : m_type( VT_STRING ) {
             m_value.s = new String( a_value );
         }
 
@@ -448,7 +448,7 @@ namespace libjson {
             a_source.m_value.o = 0;
         }
 
-        Value( ValueType a_type ) : m_type( a_type ) {
+        explicit Value( ValueType a_type ) : m_type( a_type ) {
             if ( m_type == VT_OBJECT ) {
                 m_value.o = new Object();
             } else if ( m_type == VT_ARRAY ) {
